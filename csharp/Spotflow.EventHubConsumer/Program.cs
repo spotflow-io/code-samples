@@ -47,7 +47,7 @@ async Task processEventHandler(ProcessEventArgs args)
         var message = Encoding.UTF8.GetString(eventBody);
         Console.WriteLine(message);
 
-        int eventsSinceLastCheckpoint = partitionEventCount.AddOrUpdate(
+        var eventsSinceLastCheckpoint = partitionEventCount.AddOrUpdate(
             key: partition,
             addValue: 1,
             updateValueFactory: (_, currentCount) => currentCount + 1);
@@ -58,7 +58,7 @@ async Task processEventHandler(ProcessEventArgs args)
             partitionEventCount[partition] = 0;
         }
     }
-    catch
+    catch (Exception ex)
     {
         // It is very important that you always guard against
         // exceptions in your handler code; the processor does
@@ -79,7 +79,7 @@ Task processErrorHandler(ProcessErrorEventArgs args)
         Console.WriteLine($"\tException: {args.Exception}");
         Console.WriteLine("");
     }
-    catch
+    catch (Exception ex)
     {
         // It is very important that you always guard against
         // exceptions in your handler code; the processor does
@@ -106,7 +106,7 @@ try
         await processor.StartProcessingAsync(cancellationSource.Token);
         await Task.Delay(Timeout.Infinite, cancellationSource.Token);
     }
-    catch (TaskCanceledException)
+    catch (OperationCanceledException) when (cts.IsCancellationRequested)
     {
         // This is expected if the cancellation token is
         // signaled.
