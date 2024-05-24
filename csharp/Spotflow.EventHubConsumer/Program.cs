@@ -2,6 +2,8 @@
 using Azure.Messaging.EventHubs.Processor;
 using Azure.Storage.Blobs;
 
+using Microsoft.Extensions.Logging;
+
 using System.Collections.Concurrent;
 using System.Text;
 
@@ -22,7 +24,38 @@ var processor = new EventProcessorClient(
     eventHubsConnectionString,
     eventHubName);
 
+using var loggerFactory = LoggerFactory.Create(builder => builder.AddConsole());
+var logger = loggerFactory.CreateLogger("EventHubConsumer");
+
 var partitionEventCount = new ConcurrentDictionary<string, int>();
+
+using var cts = new CancellationTokenSource();
+cts.CancelAfter(TimeSpan.FromSeconds(60));
+
+processor.ProcessEventAsync += processEventHandler;
+processor.ProcessErrorAsync += processErrorHandler;
+
+try
+{
+    await processor.StartProcessingAsync(cts.Token);
+    await Task.Delay(Timeout.Infinite, cts.Token);
+}
+catch (OperationCanceledException) when (cts.IsCancellationRequested)
+{
+    // This is expected if the cancellation token is
+    // signaled.
+}
+finally
+{
+    // This may take up to the length of time defined
+    // as part of the configured TryTimeout of the processor;
+    // by default, this is 60 seconds.
+
+    await processor.StopProcessingAsync();
+
+    processor.ProcessEventAsync -= processEventHandler;
+    processor.ProcessErrorAsync -= processErrorHandler;
+}
 
 async Task processEventHandler(ProcessEventArgs args)
 {
@@ -43,9 +76,9 @@ async Task processEventHandler(ProcessEventArgs args)
 
         var partition = args.Partition.PartitionId;
         var eventBody = args.Data.EventBody.ToArray();
-        Console.WriteLine($"Event from partition {partition} with length {eventBody.Length}.");
+        logger.LogInformation("Event from partition {partition} with length {eventBodyLength}.", partition, eventBody.Length);
         var message = Encoding.UTF8.GetString(eventBody);
-        Console.WriteLine(message);
+        logger.LogInformation(message);
 
         var eventsSinceLastCheckpoint = partitionEventCount.AddOrUpdate(
             key: partition,
@@ -74,10 +107,7 @@ Task processErrorHandler(ProcessErrorEventArgs args)
 {
     try
     {
-        Console.WriteLine("Error in the EventProcessorClient");
-        Console.WriteLine($"\tOperation: {args.Operation}");
-        Console.WriteLine($"\tException: {args.Exception}");
-        Console.WriteLine("");
+        logger.LogError("Error in the EventProcessorClient. Operation: '{operation}' Exception: {exception}", args.Operation, args.Exception);
     }
     catch (Exception ex)
     {
@@ -91,52 +121,4 @@ Task processErrorHandler(ProcessErrorEventArgs args)
     }
 
     return Task.CompletedTask;
-}
-
-try
-{
-    using var cancellationSource = new CancellationTokenSource();
-    cancellationSource.CancelAfter(TimeSpan.FromSeconds(60));
-
-    processor.ProcessEventAsync += processEventHandler;
-    processor.ProcessErrorAsync += processErrorHandler;
-
-    try
-    {
-        await processor.StartProcessingAsync(cancellationSource.Token);
-        await Task.Delay(Timeout.Infinite, cancellationSource.Token);
-    }
-    catch (OperationCanceledException) when (cts.IsCancellationRequested)
-    {
-        // This is expected if the cancellation token is
-        // signaled.
-    }
-    finally
-    {
-        // This may take up to the length of time defined
-        // as part of the configured TryTimeout of the processor;
-        // by default, this is 60 seconds.
-
-        await processor.StopProcessingAsync();
-    }
-}
-catch
-{
-    // The processor will automatically attempt to recover from any
-    // failures, either transient or fatal, and continue processing.
-    // Errors in the processor's operation will be surfaced through
-    // its error handler.
-    //
-    // If this block is invoked, then something external to the
-    // processor was the source of the exception.
-}
-finally
-{
-    // It is encouraged that you unregister your handlers when you have
-    // finished using the Event Processor to ensure proper cleanup.  This
-    // is especially important when using lambda expressions or handlers
-    // in any form that may contain closure scopes or hold other references.
-
-    processor.ProcessEventAsync -= processEventHandler;
-    processor.ProcessErrorAsync -= processErrorHandler;
 }
