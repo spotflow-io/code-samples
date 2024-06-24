@@ -1,5 +1,13 @@
 # Security Policy
 
-For reporting security vulnerabilities, please do not use GitHub issues in this repository which are public. Disclosing a vulnerability publicly might lead to situation when the vulnerability is widely known but no fix is yet available, thus harming other users. Instead, please disclose the vulnerability privately according guideline in [Spotflow's company security policy](https://github.com/spotflow-io/security).
+## Reporting a Vulnerability
 
-Ultimately, all vulnerability will be made public and the reporter will be properly credited for the discovery but not before a fix is available.
+If a newly discovered vulnerability or security issue is discovered, we kindly ask our users and security researchers to disclose it privately and securely via the [GitHub Security Advisories (GHSA)](https://github.com/spotflow-io/code-samples/security/advisories/new) feature on this repository. Please do not report vulnerabilities via GitHub issues or other public channels. Disclosing a vulnerability publicly might lead to a situation where a vulnerability is widely known, but no fix is yet available, thus harming other users.
+
+Alternatively, the report can be sent via email to `security@spotflow.io`. However, we prefer GHSA for security reasons.
+
+Ultimately, we will publish all vulnerabilities publicly and credit the reporter appropriately for the discovery, but only after a fix is available.
+
+## Bug Bounty Programs
+
+Currently, we are not running any bug bounty programs.
