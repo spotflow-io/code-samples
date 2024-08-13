@@ -32,7 +32,7 @@ var partitionEventCount = new ConcurrentDictionary<string, int>();
 using var cts = new CancellationTokenSource();
 cts.CancelAfter(TimeSpan.FromSeconds(60));
 
-processor.ProcessEventAsync += processEventHandler;
+processor.ProcessEventAsync += processEventHandlerAsync;
 processor.ProcessErrorAsync += processErrorHandler;
 
 try
@@ -53,11 +53,11 @@ finally
 
     await processor.StopProcessingAsync();
 
-    processor.ProcessEventAsync -= processEventHandler;
+    processor.ProcessEventAsync -= processEventHandlerAsync;
     processor.ProcessErrorAsync -= processErrorHandler;
 }
 
-async Task processEventHandler(ProcessEventArgs args)
+async Task processEventHandlerAsync(ProcessEventArgs args)
 {
     try
     {

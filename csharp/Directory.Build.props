@@ -1,6 +1,5 @@
 <Project>
-    <!-- .NET & C# -->
-
+    
     <PropertyGroup>
         <TargetFramework>net8.0</TargetFramework>
         <LangVersion>latest</LangVersion>
@@ -9,15 +8,12 @@
         <ImplicitUsings>enable</ImplicitUsings>
         <IsPublishable>false</IsPublishable>
         <IsPackable>false</IsPackable>
+        <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     </PropertyGroup>
-
-    <!-- Release configuration -->
 
     <PropertyGroup Condition="'$(Configuration)' == 'Release'">
         <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
     </PropertyGroup>
-
-    <!-- CI -->
 
     <PropertyGroup Condition="'$(CI)' == 'true'">
         <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
