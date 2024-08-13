@@ -1,0 +1,29 @@
+name: CI - C#
+
+on:
+    push:
+      branches:
+        - main
+      paths:
+        - 'csharp/**'
+    pull_request:
+      paths:
+        - 'csharp/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      Configuration: Release
+      TreatWarningsAsErrors: true
+    defaults:
+      run:
+        working-directory: csharp
+    steps:
+      - uses: actions/checkout@v4
+      - name: Restore
+        run: dotnet restore
+      - name: Check Format
+        run: dotnet format --no-restore --verify-no-changes
+      - name: Build
+        run: dotnet build --no-restore

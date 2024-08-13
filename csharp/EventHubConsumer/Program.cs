@@ -1,11 +1,11 @@
-﻿using Azure.Messaging.EventHubs;
+using System.Collections.Concurrent;
+using System.Text;
+
+using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Processor;
 using Azure.Storage.Blobs;
 
 using Microsoft.Extensions.Logging;
-
-using System.Collections.Concurrent;
-using System.Text;
 
 var storageConnectionString = "<< CONNECTION STRING FOR THE STORAGE ACCOUNT >>";
 var blobContainerName = "<< NAME OF THE BLOB CONTAINER >>";
@@ -100,6 +100,8 @@ async Task processEventHandler(ProcessEventArgs args)
         // exceptions from your handlers go uncaught by
         // the processor and will NOT be redirected to
         // the error handler.
+
+        logger.LogCritical(ex, "Unexpected failure.");
     }
 }
 
@@ -118,6 +120,8 @@ Task processErrorHandler(ProcessErrorEventArgs args)
         // exceptions from your handlers go uncaught by
         // the processor and will NOT be handled in any
         // way.
+
+        logger.LogCritical(ex, "Unexpected failure.");
     }
 
     return Task.CompletedTask;
